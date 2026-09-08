@@ -112,7 +112,7 @@ async def generate_deal_banner(deal: SteamDeal, target_width: int = 800) -> byte
         art = art.resize((target_width, art_h), Image.Resampling.LANCZOS)
 
         # 3. Create canvas with bottom bar
-        bar_h = 56
+        bar_h = 76
         total_h = art_h + bar_h
         canvas = Image.new("RGB", (target_width, total_h), STEAM_BLACK)
         canvas.paste(art, (0, 0))
@@ -121,7 +121,7 @@ async def generate_deal_banner(deal: SteamDeal, target_width: int = 800) -> byte
 
         # 4. Paste official OS icons at bottom left
         curr_x = 24
-        os_icons = get_os_icons(deal, max_height=20)
+        os_icons = get_os_icons(deal, max_height=26)
         for icon in os_icons:
             icon_y = art_h + (bar_h - icon.height) // 2
             canvas.paste(icon, (curr_x, icon_y), icon)
@@ -129,9 +129,9 @@ async def generate_deal_banner(deal: SteamDeal, target_width: int = 800) -> byte
 
         # 5. Load fonts
         try:
-            f_discount = ImageFont.truetype(FONT_BOLD, 28)
-            f_orig = ImageFont.truetype(FONT_REGULAR, 14)
-            f_final = ImageFont.truetype(FONT_BOLD, 18)
+            f_discount = ImageFont.truetype(FONT_BOLD, 42)
+            f_orig = ImageFont.truetype(FONT_REGULAR, 18)
+            f_final = ImageFont.truetype(FONT_BOLD, 26)
         except Exception:
             f_discount = ImageFont.load_default()
             f_orig = ImageFont.load_default()
@@ -152,7 +152,7 @@ async def generate_deal_banner(deal: SteamDeal, target_width: int = 800) -> byte
         bbox_d = draw.textbbox((0, 0), discount_text, font=f_discount)
         dt_w = bbox_d[2] - bbox_d[0]
         dt_h = bbox_d[3] - bbox_d[1]
-        discount_box_w = max(96, dt_w + 28)
+        discount_box_w = max(110, dt_w + 30)
 
         bbox_o = draw.textbbox((0, 0), orig_text, font=f_orig)
         ot_w = bbox_o[2] - bbox_o[0]
@@ -163,7 +163,7 @@ async def generate_deal_banner(deal: SteamDeal, target_width: int = 800) -> byte
         ft_h = bbox_f[3] - bbox_f[1]
 
         price_content_w = max(ot_w, ft_w)
-        price_box_w = max(112, price_content_w + 30)
+        price_box_w = max(130, price_content_w + 30)
 
         discount_box_x = target_width - discount_box_w - price_box_w
         price_box_x = target_width - price_box_w
@@ -175,7 +175,7 @@ async def generate_deal_banner(deal: SteamDeal, target_width: int = 800) -> byte
         )
         # Center discount text inside discount box
         dt_x = discount_box_x + (discount_box_w - dt_w) // 2
-        dt_y = art_h + (bar_h - dt_h) // 2 - 2
+        dt_y = art_h + (bar_h - dt_h) // 2 - 6
         draw.text((dt_x, dt_y), discount_text, fill=STEAM_LIME_TEXT, font=f_discount)
 
         # 9. Draw Dark Price Box
@@ -186,12 +186,12 @@ async def generate_deal_banner(deal: SteamDeal, target_width: int = 800) -> byte
 
         # Original Price with Strikethrough (top line)
         ot_x = price_box_x + (price_box_w - ot_w) // 2
-        ot_y = art_h + 8
+        ot_y = art_h + 10
         draw.text((ot_x, ot_y), orig_text, fill=STEAM_GREY_TEXT, font=f_orig)
 
-        # Strikethrough line over original price
-        strike_y = ot_y + ot_h // 2 + 1
-        draw.line([ot_x - 3, strike_y + 1, ot_x + ot_w + 3, strike_y - 1], fill=STEAM_GREY_TEXT, width=1)
+        # Strikethrough line perfectly centered vertically over the original price text
+        strike_y = ot_y + bbox_o[1] + (ot_h // 2)
+        draw.line([ot_x - 2, strike_y, ot_x + ot_w + 2, strike_y], fill=STEAM_GREY_TEXT, width=2)
 
         # Final Price (bottom line)
         ft_x = price_box_x + (price_box_w - ft_w) // 2
@@ -241,6 +241,7 @@ async def _render_deal_card(
 ) -> Image.Image:
     """Renders an individual game card with image and Steam bottom bar."""
     art = await _download_artwork_image(deal, client)
+
     art_h = card_h - bar_h
 
     # Resize artwork maintaining aspect ratio and crop centered
@@ -267,9 +268,9 @@ async def _render_deal_card(
         curr_x += ic.width + 6
 
     # Fonts
-    disc_font_size = max(16, int(bar_h * 0.48))
-    final_font_size = max(12, int(bar_h * 0.36))
-    orig_font_size = max(10, int(bar_h * 0.26))
+    disc_font_size = max(16, int(bar_h * 0.45))
+    final_font_size = max(12, int(bar_h * 0.33))
+    orig_font_size = max(10, int(bar_h * 0.23))
 
     try:
         f_discount = ImageFont.truetype(FONT_BOLD, disc_font_size)
@@ -294,7 +295,7 @@ async def _render_deal_card(
     bbox_d = draw.textbbox((0, 0), discount_text, font=f_discount)
     dt_w = bbox_d[2] - bbox_d[0]
     dt_h = bbox_d[3] - bbox_d[1]
-    discount_box_w = max(int(card_w * 0.18), dt_w + 14)
+    discount_box_w = max(int(card_w * 0.18), dt_w + 30)
 
     bbox_o = draw.textbbox((0, 0), orig_text, font=f_orig)
     ot_w = bbox_o[2] - bbox_o[0]
@@ -304,14 +305,14 @@ async def _render_deal_card(
     ft_w = bbox_f[2] - bbox_f[0]
     ft_h = bbox_f[3] - bbox_f[1]
 
-    price_box_w = max(int(card_w * 0.22), max(ot_w, ft_w) + 16)
+    price_box_w = max(int(card_w * 0.22), max(ot_w, ft_w) + 30)
     discount_box_x = card_w - discount_box_w - price_box_w
     price_box_x = card_w - price_box_w
 
     # Draw Green Discount Box
     draw.rectangle([discount_box_x, art_h, discount_box_x + discount_box_w, card_h], fill=STEAM_GREEN_BG)
     dt_x = discount_box_x + (discount_box_w - dt_w) // 2
-    dt_y = art_h + (bar_h - dt_h) // 2 - 1
+    dt_y = art_h + (bar_h - dt_h) // 2 - 4
     draw.text((dt_x, dt_y), discount_text, fill=STEAM_LIME_TEXT, font=f_discount)
 
     # Draw Dark Price Box
@@ -321,12 +322,12 @@ async def _render_deal_card(
     ot_x = price_box_x + (price_box_w - ot_w) // 2
     ot_y = art_h + int(bar_h * 0.12)
     draw.text((ot_x, ot_y), orig_text, fill=STEAM_GREY_TEXT, font=f_orig)
-    strike_y = ot_y + ot_h // 2
-    draw.line([ot_x - 2, strike_y, ot_x + ot_w + 2, strike_y], fill=STEAM_GREY_TEXT, width=1)
+    strike_y = ot_y + bbox_o[1] + (ot_h // 2)
+    draw.line([ot_x - 1, strike_y, ot_x + ot_w + 1, strike_y], fill=STEAM_GREY_TEXT, width=1)
 
     # Final price
     ft_x = price_box_x + (price_box_w - ft_w) // 2
-    ft_y = art_h + bar_h - ft_h - int(bar_h * 0.16)
+    ft_y = art_h + bar_h - ft_h - int(bar_h * 0.18)
     draw.text((ft_x, ft_y), final_text, fill=STEAM_LIME_TEXT, font=f_final)
 
     return card
@@ -347,7 +348,7 @@ async def generate_digest_collage(deals: list[SteamDeal], target_width: int = 12
     try:
         pad = 16
         gap = 12
-        STEAM_DARK_BG = (14, 20, 27)  # #0e141b
+        STEAM_BLUE_BG = (27, 40, 56)  # Official Steam dark blue #1b2838
 
         async with httpx.AsyncClient(timeout=25.0) as client:
             if len(deals) >= 5:
@@ -355,15 +356,15 @@ async def generate_digest_collage(deals: list[SteamDeal], target_width: int = 12
                 avail_w1 = target_width - 2 * pad - gap
                 w1 = avail_w1 // 2
                 h1 = 310
-                bar_h1 = 50
+                bar_h1 = 76
 
                 avail_w2 = target_width - 2 * pad - 2 * gap
                 w2 = avail_w2 // 3
                 h2 = 220
-                bar_h2 = 42
+                bar_h2 = 64
 
                 total_h = pad + h1 + gap + h2 + pad
-                canvas = Image.new("RGB", (target_width, total_h), STEAM_DARK_BG)
+                canvas = Image.new("RGB", (target_width, total_h), STEAM_BLUE_BG)
 
                 # Render Row 1 (2 cards)
                 c0 = await _render_deal_card(deals[0], client, w1, h1, bar_h1)
@@ -385,7 +386,7 @@ async def generate_digest_collage(deals: list[SteamDeal], target_width: int = 12
                 h = 280
                 bar_h = 46
                 total_h = pad + h + gap + h + pad
-                canvas = Image.new("RGB", (target_width, total_h), STEAM_DARK_BG)
+                canvas = Image.new("RGB", (target_width, total_h), STEAM_BLUE_BG)
 
                 for i in range(4):
                     row = i // 2
@@ -402,7 +403,7 @@ async def generate_digest_collage(deals: list[SteamDeal], target_width: int = 12
                 h = 260
                 bar_h = 44
                 total_h = pad + h + pad
-                canvas = Image.new("RGB", (target_width, total_h), STEAM_DARK_BG)
+                canvas = Image.new("RGB", (target_width, total_h), STEAM_BLUE_BG)
 
                 for i in range(3):
                     ci = await _render_deal_card(deals[i], client, w, h, bar_h)
@@ -416,7 +417,7 @@ async def generate_digest_collage(deals: list[SteamDeal], target_width: int = 12
                 h = 320
                 bar_h = 50
                 total_h = pad + h + pad
-                canvas = Image.new("RGB", (target_width, total_h), STEAM_DARK_BG)
+                canvas = Image.new("RGB", (target_width, total_h), STEAM_BLUE_BG)
 
                 c0 = await _render_deal_card(deals[0], client, w, h, bar_h)
                 c1 = await _render_deal_card(deals[1], client, w, h, bar_h)
