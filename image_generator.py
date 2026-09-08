@@ -19,10 +19,9 @@ logger = logging.getLogger(__name__)
 BASE_DIR = Path(__file__).resolve().parent
 ASSETS_DIR = BASE_DIR / "assets"
 
-# Fonts directory on Windows
-FONT_DIR = os.path.join(os.environ.get("WINDIR", "C:\\Windows"), "Fonts")
-FONT_BOLD = os.path.join(FONT_DIR, "segoeuib.ttf") if os.path.exists(os.path.join(FONT_DIR, "segoeuib.ttf")) else "arialbd.ttf"
-FONT_REGULAR = os.path.join(FONT_DIR, "segoeui.ttf") if os.path.exists(os.path.join(FONT_DIR, "segoeui.ttf")) else "arial.ttf"
+# Local fonts bundled in assets/
+FONT_BOLD = str(ASSETS_DIR / "Roboto-Bold.ttf")
+FONT_REGULAR = str(ASSETS_DIR / "Roboto-Regular.ttf")
 
 # Steam Official Palette
 STEAM_BLACK = (0, 0, 0)
