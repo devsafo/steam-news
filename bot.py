@@ -138,21 +138,6 @@ async def check_and_post_deals(bot: Bot) -> int:
             logger.info("Hech qanday chegirmali o'yin topilmadi.")
             return 0
 
-        if database.get_posted_count() == 0:
-            logger.info("Ma'lumotlar bazasi bo'sh! Takroriy (spam) postlarning oldini olish uchun joriy barcha o'yinlar faqat bazaga saqlanadi...")
-            for deal in deals:
-                database.mark_game_posted(
-                    app_id=deal.id,
-                    name=deal.name,
-                    discount_percent=deal.discount_percent,
-                    original_price=deal.original_price,
-                    final_price=deal.final_price,
-                    currency=deal.currency,
-                    expiration_timestamp=deal.discount_expiration,
-                )
-            logger.info(f"{len(deals)} ta o'yin bazaga yozildi. Endi faqat yangi chegirmalar kanalga yuboriladi.")
-            return 0
-
         posted_count = 0
         newly_posted_deals: list[SteamDeal] = []
         logger.info(f"Steam API dan jami {len(deals)} ta chegirma olindi. Yangilari filtrlanmoqda...")
